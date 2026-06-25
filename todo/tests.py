@@ -19,7 +19,7 @@ class TaskModelCase(TestCase):
         self.assertFalse(task.completed)
         self.assertEqual(task.due_at, due)
 
-    def etst_create_task2(self):
+    def test_create_task2(self):
         task = Task(title='task2')
         task.save()
 
