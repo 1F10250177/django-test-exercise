@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+
+  <head>
+    <title>Edit Task - To Do Application</title>
+    <meta charset="UTF-8">
+    <meta name="author" content="INIAD">
+  </head>
+
+  <body>
+    <h1>Edit Task</h1>
+    <form action="{% url 'edit' task.id %}" method="post">
+      {% csrf_token %}
+      <div>
+        <label for="titleInput">Title</label><br>
+        <input id="titleInput" name="title" type="text" value="{{ task.title }}" required>
+      </div>
+      <br>
+      <div>
+        <label for="dueInput">Due at:</label><br>
+        <input id="dueInput" name="due_at" type="datetime-local" value="{% if task.due_at %}{{ task.due_at|date:'Y-m-d\TH:i' }}{% endif %}">
+      </div>
+      <br>
+      <div>
+        <label for="completedInput">Completed</label><br>
+        <input id="completedInput" name="completed" type="checkbox" {% if task.completed %}checked{% endif %}>
+      </div>
+      <br>
+      <div>
+        <button type="submit">Update</button>
+      </div>
+    </form>
+    <br>
+
+    <div>
+      <a href="{% url 'detail' task.id %}">Back to Detail</a> |
+      <a href="{% url 'index' %}">Back to Top</a>
+    </div>
+  </body>
+
+</html>
