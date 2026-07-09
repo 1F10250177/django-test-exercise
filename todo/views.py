@@ -16,6 +16,9 @@ def index(request):
         task = Task(title=request.POST['title'],
                     due_at=due_at,
                     priority=request.POST.get('priority', 2))
+        task = Task(title=request.POST['title'])
+        if request.POST.get('due_at'):
+            task.due_at = make_aware(parse_datetime(request.POST['due_at']))
         task.save()
 
     order = request.GET.get('order')
