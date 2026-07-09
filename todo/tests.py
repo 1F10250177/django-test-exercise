@@ -124,6 +124,55 @@ class TodoViewTestCase(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
+    def test_edit_post_success(self):
+        task = Task(title='task1', due_at=timezone.make_aware(datetime(2024, 7, 1)))
+        task.save()
+        client = Client()
+        data = {
+            'title': 'updated task',
+            'due_at': '2024-07-02 12:30:00',
+            'completed': 'on',
+        }
+        response = client.post('/{}/edit/'.format(task.pk), data)
+
+        task.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/{}/'.format(task.pk))
+        self.assertEqual(task.title, 'updated task')
+        self.assertEqual(task.due_at, timezone.make_aware(datetime(2024, 7, 2, 12, 30)))
+        self.assertTrue(task.completed)
+
+    def test_edit_post_without_due_at_and_completed(self):
+        task = Task(
+            title='task1',
+            due_at=timezone.make_aware(datetime(2024, 7, 1)),
+            completed=True,
+        )
+        task.save()
+        client = Client()
+        data = {
+            'title': 'updated task',
+            'due_at': '',
+        }
+        response = client.post('/{}/edit/'.format(task.pk), data)
+
+        task.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/{}/'.format(task.pk))
+        self.assertEqual(task.title, 'updated task')
+        self.assertEqual(task.due_at, None)
+        self.assertFalse(task.completed)
+
+    def test_edit_post_fail(self):
+        client = Client()
+        data = {
+            'title': 'updated task',
+            'due_at': '',
+        }
+        response = client.post('/1/edit/', data)
+
+        self.assertEqual(response.status_code, 404)
+
     def test_delete_get_success(self):
         task = Task(title='task1')
         task.save()
