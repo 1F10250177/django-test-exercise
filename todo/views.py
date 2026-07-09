@@ -8,13 +8,24 @@ from todo.models import Task
 # Create your views here.
 def index(request):
     if request.method == 'POST':
+        due_at_str = request.POST.get('due_at')
+        if due_at_str:
+            due_at = make_aware(parse_datetime(due_at_str))
+        else:
+            due_at = None
+        task = Task(title=request.POST['title'],
+                    due_at=due_at,
+                    priority=request.POST.get('priority', 2))
         task = Task(title=request.POST['title'])
         if request.POST.get('due_at'):
             task.due_at = make_aware(parse_datetime(request.POST['due_at']))
         task.save()
 
-    if request.GET.get('order') == 'due':
+    order = request.GET.get('order')
+    if order == 'due':
         tasks = Task.objects.order_by('due_at')
+    elif order == 'priority':
+        tasks = Task.objects.order_by('priority', 'due_at')
     else:
         tasks = Task.objects.order_by('-posted_at')
 
@@ -48,6 +59,8 @@ def edit(request, task_id):
             task.due_at = make_aware(parse_datetime(request.POST['due_at']))
         else:
             task.due_at = None
+        if request.POST.get('priority'):
+            task.priority = request.POST.get('priority')
         if request.POST.get('completed'):
             task.completed = True
         else:
