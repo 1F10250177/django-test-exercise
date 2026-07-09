@@ -13,3 +13,15 @@ class Task(models.Model):
         if self.due_at is None:
             return False
         return self.due_at < dt
+
+    PRIORITY_CHOICES = (
+        (1, '高'),
+        (2, '中'),
+        (3, '低'),
+    )
+    
+    priority = models.IntegerField(
+        choices=PRIORITY_CHOICES, 
+        default=2, 
+        verbose_name='優先度'
+    )
