@@ -12,6 +12,7 @@
   <body>
     <h1>{{ task.title }}</h1>
     <ul>
+      <li>Owner: {{ task.owner.username }}</li>
       <li>Posted at: {{ task.posted_at }}</li>
       {% if task.due_at %}
       <li>Due at: {{ task.due_at }}</li>
@@ -35,6 +36,10 @@
     </form>
 
     <div>
+      <form action="{% url 'toggle_completed' task.id %}" method="post" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit">{% if task.completed %}未完了に戻す{% else %}完了にする{% endif %}</button>
+      </form>
       <a href="{% url 'edit' task.id %}">Edit</a> |
       <a href="{% url 'index' %}">Top</a>
       <a href="{% url 'delete' task.id %}">Delete</a>

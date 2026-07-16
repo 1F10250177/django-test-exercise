@@ -1,0 +1,21 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+
+  <head>
+    <title>アカウント作成 - To Do Application</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'todo/style.css' %}">
+  </head>
+
+  <body>
+    <h1>アカウント作成</h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">登録</button>
+    </form>
+    <p><a href="{% url 'login' %}">ログイン画面へ戻る</a></p>
+  </body>
+
+</html>

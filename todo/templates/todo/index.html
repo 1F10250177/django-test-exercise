@@ -25,6 +25,13 @@
 
   <body>
     <h1>Sample To Do Application</h1>
+    <p>
+      {{ user.username }} さん
+      <form action="{% url 'logout' %}" method="post" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit">ログアウト</button>
+      </form>
+    </p>
     <p>You can submit tasks from the following form.</p>
     <form action="{% url 'index' %}" method="post">
       {% csrf_token %}
