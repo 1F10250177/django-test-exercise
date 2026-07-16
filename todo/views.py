@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import Http404, JsonResponse
+from django.shortcuts import get_object_or_404, render, redirect
+from django.http import Http404, HttpResponseNotAllowed
 from django.utils.timezone import make_aware
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_POST # POSTリクエスト制限用に追加
@@ -20,13 +22,20 @@ def index(request):
                     priority=request.POST.get('priority', 2))
         task.save()
 
+    status = request.GET.get('status', 'active')
+    tasks = Task.objects.all()
+    if status == 'completed':
+        tasks = tasks.filter(completed=True)
+    elif status != 'all':
+        tasks = tasks.filter(completed=False)
+
     order = request.GET.get('order')
     if order == 'due':
-        tasks = Task.objects.order_by('due_at')
+        tasks = tasks.order_by('due_at')
     elif order == 'priority':
-        tasks = Task.objects.order_by('priority', 'due_at')
+        tasks = tasks.order_by('priority', 'due_at')
     else:
-        tasks = Task.objects.order_by('-posted_at')
+        tasks = tasks.order_by('-posted_at')
 
     context = {
         'tasks': tasks
@@ -53,15 +62,17 @@ def edit(request, task_id):
         raise Http404("Task does not exist")
     
     if request.method == 'POST':
-        task.title = request.POST['title']
+        if request.POST.get('title'):
+            task.title = request.POST['title']
         if request.POST.get('due_at'):
             task.due_at = make_aware(parse_datetime(request.POST['due_at']))
         else:
             task.due_at = None
         if request.POST.get('priority'):
             task.priority = request.POST.get('priority')
-        if request.POST.get('completed'):
-            task.completed = True
+        completed_value = request.POST.get('completed')
+        if completed_value == 'on' or completed_value == 'off':
+            task.completed = completed_value == 'on'
         else:
             task.completed = False
         task.save()
@@ -72,6 +83,15 @@ def edit(request, task_id):
     }
     return render(request, 'todo/edit.html', context)
 
+
+def toggle_completed(request, task_id):
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    task = get_object_or_404(Task, pk=task_id)
+    task.completed = not task.completed
+    task.save(update_fields=['completed'])
+    return redirect('index')
 
 def delete(request, task_id):
     try:

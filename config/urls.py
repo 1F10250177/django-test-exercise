@@ -23,6 +23,7 @@ urlpatterns = [
     path('', todo_views.index, name='index'),
     path('<int:task_id>/', todo_views.detail, name='detail'),
     path('<int:task_id>/edit/', todo_views.edit, name='edit'),
+    path('<int:task_id>/toggle-completed/', todo_views.toggle_completed, name='toggle_completed'),
     path('<int:task_id>/delete', todo_views.delete, name='delete'),
     path('update-order/', todo_views.update_task_order, name='update_task_order'),
 ]
