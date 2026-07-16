@@ -58,6 +58,16 @@
         <li>Status: Not Completed</li>
         {% endif %}
       </ul>
+      <form action="{% url 'edit' task.id %}" method="post" class="inline-action-form">
+        {% csrf_token %}
+        <input type="hidden" name="title" value="{{ task.title }}">
+        <input type="hidden" name="due_at" value="{% if task.due_at %}{{ task.due_at|date:'Y-m-d\TH:i' }}{% endif %}">
+        <input type="hidden" name="priority" value="{{ task.priority }}">
+        <input type="hidden" name="completed" value="{% if task.completed %}off{% else %}on{% endif %}">
+        <button type="submit" class="status-toggle-btn {% if task.completed %}completed{% else %}pending{% endif %}">
+          {% if task.completed %}Mark as Pending{% else %}Mark as Done{% endif %}
+        </button>
+      </form>
     </div>
     {% endfor %}
   </body>

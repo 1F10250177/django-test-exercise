@@ -105,6 +105,36 @@ button:active {
     background-color: #1f618d;
 }
 
+.inline-action-form {
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    margin: 8px 0 0;
+}
+
+.status-toggle-btn {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.95em;
+    font-weight: 600;
+}
+
+.status-toggle-btn.pending {
+    background-color: #2ecc71;
+}
+
+.status-toggle-btn.pending:hover {
+    background-color: #27ae60;
+}
+
+.status-toggle-btn.completed {
+    background-color: #e67e22;
+}
+
+.status-toggle-btn.completed:hover {
+    background-color: #d35400;
+}
+
 /* Links and Navigation */
 a {
     color: #3498db;
