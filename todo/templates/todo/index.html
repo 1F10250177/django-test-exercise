@@ -36,9 +36,14 @@
     <br>
 
     <div>
-      <a href="{% url 'index' %}?order=due">Sort by Due Date</a> |
-      <a href="{% url 'index' %}?order=post">Sort by Posted Date</a> |
-      <a href="{% url 'index' %}?order=priority">Sort by Priority</a>
+      <a href="{% url 'index' %}?status=active">未完了</a> |
+      <a href="{% url 'index' %}?status=completed">完了済み</a> |
+      <a href="{% url 'index' %}?status=all">すべて</a>
+    </div>
+    <div>
+      <a href="{% url 'index' %}?status={{ request.GET.status|default:'active' }}&order=due">Sort by Due Date</a> |
+      <a href="{% url 'index' %}?status={{ request.GET.status|default:'active' }}&order=post">Sort by Posted Date</a> |
+      <a href="{% url 'index' %}?status={{ request.GET.status|default:'active' }}&order=priority">Sort by Priority</a>
     </div>
 
     {% for task in tasks %}
@@ -58,6 +63,10 @@
         <li>Status: Not Completed</li>
         {% endif %}
       </ul>
+      <form action="{% url 'toggle_completed' task.id %}" method="post">
+        {% csrf_token %}
+        <button type="submit">{% if task.completed %}未完了に戻す{% else %}完了にする{% endif %}</button>
+      </form>
     </div>
     {% endfor %}
   </body>
