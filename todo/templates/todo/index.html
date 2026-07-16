@@ -62,11 +62,21 @@
         {% else %}
         <li>Status: Not Completed</li>
         {% endif %}
-      </ul>
-      <form action="{% url 'toggle_completed' task.id %}" method="post">
+        <form action="{% url 'edit' task.id %}" method="post" class="inline-action-form">
         {% csrf_token %}
-        <button type="submit">{% if task.completed %}未完了に戻す{% else %}完了にする{% endif %}</button>
+        <input type="hidden" name="title" value="{{ task.title }}">
+        <input type="hidden" name="due_at" value="{% if task.due_at %}{{ task.due_at|date:'Y-m-d\\TH:i' }}{% endif %}">
+        <input type="hidden" name="priority" value="{{ task.priority }}">
+        {% if task.completed %}
+          <input type="hidden" name="completed" value="">
+        {% else %}
+          <input type="hidden" name="completed" value="on">
+        {% endif %}
+        <button type="submit" class="status-toggle-btn {% if task.completed %}completed{% else %}pending{% endif %}">
+          {% if task.completed %}未完了に戻す{% else %}完了にする{% endif %}
+        </button>
       </form>
+      </ul>
     </div>
     {% endfor %}
   </body>

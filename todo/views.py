@@ -58,15 +58,17 @@ def edit(request, task_id):
         raise Http404("Task does not exist")
     
     if request.method == 'POST':
-        task.title = request.POST['title']
+        if request.POST.get('title'):
+            task.title = request.POST['title']
         if request.POST.get('due_at'):
             task.due_at = make_aware(parse_datetime(request.POST['due_at']))
         else:
             task.due_at = None
         if request.POST.get('priority'):
             task.priority = request.POST.get('priority')
-        if request.POST.get('completed'):
-            task.completed = True
+        completed_value = request.POST.get('completed')
+        if completed_value == 'on' or completed_value == 'off':
+            task.completed = completed_value == 'on'
         else:
             task.completed = False
         task.save()
