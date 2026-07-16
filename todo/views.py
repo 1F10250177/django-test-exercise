@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.utils.timezone import make_aware
 from django.utils.dateparse import parse_datetime
+from django.views.decorators.http import require_POST # POSTリクエスト制限用に追加
+import json 
 from todo.models import Task
 
 
@@ -16,9 +18,6 @@ def index(request):
         task = Task(title=request.POST['title'],
                     due_at=due_at,
                     priority=request.POST.get('priority', 2))
-        task = Task(title=request.POST['title'])
-        if request.POST.get('due_at'):
-            task.due_at = make_aware(parse_datetime(request.POST['due_at']))
         task.save()
 
     order = request.GET.get('order')
@@ -73,6 +72,7 @@ def edit(request, task_id):
     }
     return render(request, 'todo/edit.html', context)
 
+
 def delete(request, task_id):
     try:
         task = Task.objects.get(pk=task_id)
@@ -80,3 +80,17 @@ def delete(request, task_id):
         raise Http404("Task does not exist")
     task.delete()
     return redirect(index)
+
+
+@require_POST
+def update_task_order(request):
+    try:
+        data = json.loads(request.body)
+        task_ids = data.get('task_ids', [])
+
+        for index_num, task_id in enumerate(task_ids):
+            Task.objects.filter(id=task_id).update(order=index_num)
+    
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
