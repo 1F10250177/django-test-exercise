@@ -276,6 +276,30 @@ class TodoViewTestCase(TestCase):
         self.assertEqual(task.due_at, None)
         self.assertFalse(task.completed)
 
+    def test_edit_post_completed_only(self):
+        task = Task.objects.create(title='task1', owner=self.user)
+        data = {'completed': 'on'}
+        response = self.client.post('/{}/edit/'.format(task.pk), data)
+
+        task.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/{}/'.format(task.pk))
+        self.assertTrue(task.completed)
+
+    def test_edit_post_completed_button_value(self):
+        task = Task.objects.create(
+            title='task1',
+            completed=True,
+            owner=self.user,
+        )
+        data = {'completed': 'off'}
+        response = self.client.post('/{}/edit/'.format(task.pk), data)
+
+        task.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/{}/'.format(task.pk))
+        self.assertFalse(task.completed)
+
     def test_edit_post_fail(self):
         data = {
             'title': 'updated task',
