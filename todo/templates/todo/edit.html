@@ -24,6 +24,15 @@
       </div>
       <br>
       <div>
+        <label for="priorityInput">Priority:</label><br>
+        <select id="priorityInput" name="priority">
+          {% for value, label in task.PRIORITY_CHOICES %}
+          <option value="{{ value }}" {% if task.priority == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <br>
+      <div>
         <label for="completedInput">Completed</label><br>
         <input id="completedInput" name="completed" type="checkbox" {% if task.completed %}checked{% endif %}>
       </div>

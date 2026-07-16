@@ -36,9 +36,14 @@
     <br>
 
     <div>
-      <a href="{% url 'index' %}?order=due">Sort by Due Date</a> |
-      <a href="{% url 'index' %}?order=post">Sort by Posted Date</a> |
-      <a href="{% url 'index' %}?order=priority">Sort by Priority</a>
+      <a href="{% url 'index' %}?status=active">未完了</a> |
+      <a href="{% url 'index' %}?status=completed">完了済み</a> |
+      <a href="{% url 'index' %}?status=all">すべて</a>
+    </div>
+    <div>
+      <a href="{% url 'index' %}?status={{ request.GET.status|default:'active' }}&order=due">Sort by Due Date</a> |
+      <a href="{% url 'index' %}?status={{ request.GET.status|default:'active' }}&order=post">Sort by Posted Date</a> |
+      <a href="{% url 'index' %}?status={{ request.GET.status|default:'active' }}&order=priority">Sort by Priority</a>
     </div>
 
     {% for task in tasks %}
@@ -57,17 +62,21 @@
         {% else %}
         <li>Status: Not Completed</li>
         {% endif %}
-      </ul>
-      <form action="{% url 'edit' task.id %}" method="post" class="inline-action-form">
+        <form action="{% url 'edit' task.id %}" method="post" class="inline-action-form">
         {% csrf_token %}
         <input type="hidden" name="title" value="{{ task.title }}">
-        <input type="hidden" name="due_at" value="{% if task.due_at %}{{ task.due_at|date:'Y-m-d\TH:i' }}{% endif %}">
+        <input type="hidden" name="due_at" value="{% if task.due_at %}{{ task.due_at|date:'Y-m-d\\TH:i' }}{% endif %}">
         <input type="hidden" name="priority" value="{{ task.priority }}">
-        <input type="hidden" name="completed" value="{% if task.completed %}off{% else %}on{% endif %}">
+        {% if task.completed %}
+          <input type="hidden" name="completed" value="">
+        {% else %}
+          <input type="hidden" name="completed" value="on">
+        {% endif %}
         <button type="submit" class="status-toggle-btn {% if task.completed %}completed{% else %}pending{% endif %}">
-          {% if task.completed %}Mark as Pending{% else %}Mark as Done{% endif %}
+          {% if task.completed %}未完了に戻す{% else %}完了にする{% endif %}
         </button>
       </form>
+      </ul>
     </div>
     {% endfor %}
   </body>

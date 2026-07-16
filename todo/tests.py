@@ -30,6 +30,16 @@ class TaskModelCase(TestCase):
         self.assertFalse(task.completed)
         self.assertEqual(task.due_at, None)
 
+    def test_create_task_with_priority(self):
+        client = Client()
+        client.post('/', {
+            'title': 'High priority task',
+            'priority': '1',
+        })
+
+        task = Task.objects.get(title='High priority task')
+        self.assertEqual(task.priority, 1)
+
     def test_is_overdue_future(self):
         due = timezone.make_aware(datetime(2024, 6, 30, 23, 59, 59))
         current = timezone.make_aware(datetime(2024, 6, 30, 0, 0, 0))
@@ -81,6 +91,29 @@ class TodoViewTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, 'todo/index.html')
         self.assertEqual(task.due_at, None)
+
+    def test_toggle_completed_hides_task_from_active_list(self):
+        task = Task.objects.create(title='Task to complete')
+        client = Client()
+
+        response = client.post('/{}/toggle-completed/'.format(task.pk))
+
+        task.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(task.completed)
+        self.assertNotContains(client.get('/'), task.title)
+        self.assertContains(client.get('/?status=completed'), task.title)
+
+    def test_toggle_completed_back_to_active(self):
+        task = Task.objects.create(title='Completed task', completed=True)
+        client = Client()
+
+        response = client.post('/{}/toggle-completed/'.format(task.pk))
+
+        task.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(task.completed)
+        self.assertContains(client.get('/'), task.title)
 
     def test_index_get_order_post(self):
         task1 = Task(title='task1', due_at=timezone.make_aware(datetime(2024, 7, 1)))
