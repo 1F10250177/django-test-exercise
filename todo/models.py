@@ -16,6 +16,7 @@ class Task(models.Model):
     completed = models.BooleanField(default=False)
     posted_at = models.DateTimeField(default=timezone.now)
     due_at = models.DateTimeField(null=True, blank=True)
+    order = models.IntegerField(default=0, verbose_name='並び順')
 
     def is_overdue(self, dt):
         if self.due_at is None:
@@ -33,3 +34,6 @@ class Task(models.Model):
         default=2, 
         verbose_name='優先度'
     )
+
+    class Meta:
+        ordering = ['order', '-posted_at'] 

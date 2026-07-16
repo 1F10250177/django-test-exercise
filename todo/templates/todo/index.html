@@ -7,6 +7,20 @@
     <meta charset="UTF-8">
     <meta name="author" content="INIAD">
     <link rel="stylesheet" href="{% static 'todo/style.css' %}">
+    <style>
+      /* ドラッグ中のアイテムを少し半透明にするスタイル（お好みで調整してください） */
+      .sortable-ghost {
+        opacity: 0.5;
+        background-color: #f0f8ff;
+      }
+      /* マウスカーソルを「掴める」アイコンにする */
+      .text {
+        cursor: grab;
+      }
+      .text:active {
+        cursor: grabbing;
+      }
+    </style>
   </head>
 
   <body>
@@ -53,39 +67,86 @@
       <a href="{% url 'index' %}?status={{ request.GET.status|default:'active' }}&order=priority">Sort by Priority</a>
     </div>
 
-    {% for task in tasks %}
-    <div class="text">
-      <h2><a href="{% url 'detail' task.id %}">{{ task.title }}</a></h2>
-      <ul>
-        <li>Posted at: {{ task.posted_at }}</li>
-        {% if task.due_at %} 
-        <li>Due at: {{ task.due_at }}</li>
-        {% endif %}
-        
-        <li>Priority: {{ task.get_priority_display }}</li>
+    <div id="task-list">
+      {% for task in tasks %}
+      <div class="text" data-id="{{ task.id }}">
+        <h2><a href="{% url 'detail' task.id %}">{{ task.title }}</a></h2>
+        <ul>
+          <li>Posted at: {{ task.posted_at }}</li>
+          {% if task.due_at %} 
+          <li>Due at: {{ task.due_at }}</li>
+          {% endif %}
+          
+          <li>Priority: {{ task.get_priority_display }}</li>
 
-        {% if task.completed %} 
-        <li>Status: Completed</li>
-        {% else %}
-        <li>Status: Not Completed</li>
-        {% endif %}
-        <form action="{% url 'edit' task.id %}" method="post" class="inline-action-form">
-        {% csrf_token %}
-        <input type="hidden" name="title" value="{{ task.title }}">
-        <input type="hidden" name="due_at" value="{% if task.due_at %}{{ task.due_at|date:'Y-m-d\\TH:i' }}{% endif %}">
-        <input type="hidden" name="priority" value="{{ task.priority }}">
-        {% if task.completed %}
-          <input type="hidden" name="completed" value="">
-        {% else %}
-          <input type="hidden" name="completed" value="on">
-        {% endif %}
-        <button type="submit" class="status-toggle-btn {% if task.completed %}completed{% else %}pending{% endif %}">
-          {% if task.completed %}未完了に戻す{% else %}完了にする{% endif %}
-        </button>
-      </form>
-      </ul>
-    </div>
-    {% endfor %}
+          {% if task.completed %} 
+          <li>Status: Completed</li>
+          {% else %}
+          <li>Status: Not Completed</li>
+          {% endif %}
+          <li>
+            <form action="{% url 'edit' task.id %}" method="post" class="inline-action-form">
+              {% csrf_token %}
+              <input type="hidden" name="title" value="{{ task.title }}">
+              <input type="hidden" name="due_at" value="{% if task.due_at %}{{ task.due_at|date:'Y-m-d\\TH:i' }}{% endif %}">
+              <input type="hidden" name="priority" value="{{ task.priority }}">
+              {% if task.completed %}
+                <input type="hidden" name="completed" value="">
+              {% else %}
+                <input type="hidden" name="completed" value="on">
+              {% endif %}
+              <button type="submit" class="status-toggle-btn {% if task.completed %}completed{% else %}pending{% endif %}">
+                {% if task.completed %}未完了に戻す{% else %}完了にする{% endif %}
+              </button>
+            </form>
+          </li>
+        </ul>
+      </div>
+      {% endfor %}     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const taskList = document.getElementById('task-list');
+        
+        // フォーム内に存在するCSRFトークンを取得
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        if (taskList) {
+          new Sortable(taskList, {
+            animation: 150, // ドラッグ時のアニメーション速度（ミリ秒）
+            ghostClass: 'sortable-ghost', // ドラッグ中のCSSクラス（上で定義）
+            
+            // ドロップして順番が変わった時の処理
+            onEnd: function (evt) {
+              const listItems = taskList.children;
+              const newOrderIds = Array.from(listItems).map(item => item.dataset.id);
+
+              // サーバーに新しい順番を送信
+              fetch('{% url "update_task_order" %}', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ 'task_ids': newOrderIds })
+              })
+              .then(response => response.json())
+              .then(data => {
+                if (data.status === 'success') {
+                  console.log('順番がデータベースに保存されました');
+                } else {
+                  console.error('保存エラー:', data.message);
+                }
+              })
+              .catch(error => {
+                console.error('通信エラー:', error);
+              });
+            },
+          });
+        }
+      });
+    </script>
   </body>
 
 </html>

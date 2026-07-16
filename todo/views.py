@@ -1,3 +1,5 @@
+from django.shortcuts import render, redirect
+from django.http import Http404, JsonResponse
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
@@ -5,6 +7,8 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponseNotAllowed
 from django.utils.timezone import make_aware
 from django.utils.dateparse import parse_datetime
+from django.views.decorators.http import require_POST # POSTリクエスト制限用に追加
+import json 
 from todo.models import Task
 
 
@@ -109,3 +113,17 @@ def delete(request, task_id):
     task = get_object_or_404(Task, pk=task_id, owner=request.user)
     task.delete()
     return redirect(index)
+
+
+@require_POST
+def update_task_order(request):
+    try:
+        data = json.loads(request.body)
+        task_ids = data.get('task_ids', [])
+
+        for index_num, task_id in enumerate(task_ids):
+            Task.objects.filter(id=task_id).update(order=index_num)
+    
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
