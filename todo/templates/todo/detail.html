@@ -12,6 +12,7 @@
   <body>
     <h1>{{ task.title }}</h1>
     <ul>
+      <li>Owner: {{ task.owner.username }}</li>
       <li>Posted at: {{ task.posted_at }}</li>
       {% if task.due_at %}
       <li>Due at: {{ task.due_at }}</li>
@@ -23,7 +24,22 @@
       {% endif %}
     </ul>
 
+    <form action="{% url 'edit' task.id %}" method="post" class="inline-action-form">
+      {% csrf_token %}
+      <input type="hidden" name="title" value="{{ task.title }}">
+      <input type="hidden" name="due_at" value="{% if task.due_at %}{{ task.due_at|date:'Y-m-d\TH:i' }}{% endif %}">
+      <input type="hidden" name="priority" value="{{ task.priority }}">
+      <input type="hidden" name="completed" value="{% if task.completed %}off{% else %}on{% endif %}">
+      <button type="submit" class="status-toggle-btn {% if task.completed %}completed{% else %}pending{% endif %}">
+        {% if task.completed %}Mark as Pending{% else %}Mark as Done{% endif %}
+      </button>
+    </form>
+
     <div>
+      <form action="{% url 'toggle_completed' task.id %}" method="post" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit">{% if task.completed %}未完了に戻す{% else %}完了にする{% endif %}</button>
+      </form>
       <a href="{% url 'edit' task.id %}">Edit</a> |
       <a href="{% url 'index' %}">Top</a>
       <a href="{% url 'delete' task.id %}">Delete</a>
